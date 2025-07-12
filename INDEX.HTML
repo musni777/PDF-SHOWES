@@ -2,226 +2,255 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Advanced PDF Viewer</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My PDF Viewer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg-light: #f2f5f9;
-      --bg-dark: #121212;
-      --text-light: #1e1e1e;
-      --text-dark: #f1f1f1;
-      --primary: #4f46e5;
-      --primary-dark: #3730a3;
+      --color-bg-light: #f9fafb;
+      --color-bg-dark: #121212;
+      --color-text-light: #222;
+      --color-text-dark: #eee;
+      --color-primary: #4f46e5;
+      --color-primary-dark: #3730a3;
       --radius: 12px;
+      --transition: 0.3s ease;
     }
-
     [data-theme="dark"] {
-      --bg-light: var(--bg-dark);
-      --text-light: var(--text-dark);
+      --color-bg-light: var(--color-bg-dark);
+      --color-text-light: var(--color-text-dark);
     }
-
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
     }
-
-    html, body {
-      height: 100%;
+    body {
       font-family: 'Poppins', sans-serif;
-      background: var(--bg-light);
-      color: var(--text-light);
+      background: var(--color-bg-light);
+      color: var(--color-text-light);
       display: flex;
       flex-direction: column;
-      align-items: center;
+      min-height: 100vh;
     }
-
-    #topBar {
+    header {
       position: fixed;
-      top: 0;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.8);
+      top: 0; left: 0; right: 0;
+      background: rgba(255 255 255 / 0.85);
       backdrop-filter: blur(10px);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 10;
+      padding: 0.75rem 1rem;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+      z-index: 1000;
     }
-
-    #topBar button, #bottomNav button {
-      background: var(--primary);
+    header .btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    button {
+      background: var(--color-primary);
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.5rem 1rem;
       color: white;
-      border: none;
-      border-radius: var(--radius);
-      padding: 10px 14px;
-      margin: 5px;
       cursor: pointer;
-      font-size: 14px;
-      transition: 0.3s ease;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background var(--transition);
+      user-select: none;
     }
-
-    #topBar button:hover, #bottomNav button:hover {
-      background: var(--primary-dark);
+    button:hover, button:focus {
+      background: var(--color-primary-dark);
+      outline: none;
     }
-
-    #pdfContainer {
-      margin-top: 70px;
-      width: 90%;
-      max-width: 1200px;
-      height: calc(100vh - 150px);
-      border-radius: var(--radius);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      overflow: hidden;
-      display: none;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    #bottomNav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
+    main {
+      margin-top: 72px;
+      flex-grow: 1;
       display: flex;
       justify-content: center;
-      padding: 10px;
-      z-index: 10;
+      align-items: center;
+      padding: 1rem;
     }
-
-    #loader {
-      font-size: 20px;
-      margin: 40px 0;
-      animation: pulse 1.2s infinite;
+    #pdf-wrapper {
+      width: 90vw;
+      max-width: 1000px;
+      height: 80vh;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgb(0 0 0 / 0.1);
+      overflow: hidden;
+      background: white;
+      display: flex;
+      flex-direction: column;
     }
-
+    #pdf-loader {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: var(--color-primary);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
     @keyframes pulse {
-      0%, 100% { opacity: 0.4; }
+      0%, 100% { opacity: 0.3; }
       50% { opacity: 1; }
     }
-
-    @media (max-width: 768px) {
-      #topBar button, #bottomNav button {
-        font-size: 12px;
-        padding: 8px;
+    iframe#pdf-frame {
+      flex-grow: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+      transform-origin: top left;
+      transition: transform 0.3s ease;
+      display: none;
+    }
+    footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding-bottom: 1rem;
+    }
+    footer button {
+      flex: 1 1 100px;
+      max-width: 140px;
+    }
+    #page-info {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--color-primary);
+      user-select: none;
+      align-self: center;
+    }
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      footer button {
+        max-width: 100%;
+      }
+      #pdf-wrapper {
+        height: 70vh;
       }
     }
   </style>
 </head>
 <body>
 
-  <div id="topBar">
-    <div>
-      <button onclick="toggleTheme()">🌓 Theme</button>
-      <button onclick="toggleFullscreen()">⛶ Fullscreen</button>
-      <button onclick="zoomIn()">➕ Zoom</button>
-      <button onclick="zoomOut()">➖ Zoom</button>
-      <button onclick="printPDF()">🖨️ Print</button>
-      <button onclick="sharePDF()">📤 Share</button>
-    </div>
-    <div>
-      <button onclick="downloadPDF()">⬇️ Download</button>
-      <button onclick="loadPDF()">📄 Show PDF</button>
-    </div>
+<header>
+  <div class="btn-group">
+    <button id="loadBtn">Show PDF</button>
+    <button id="downloadBtn" disabled>Download PDF</button>
+    <button id="printBtn" disabled>Print PDF</button>
   </div>
-
-  <div id="loader">Loading PDF...</div>
-
-  <div id="pdfContainer">
-    <iframe id="pdfFrame" src="" allowfullscreen></iframe>
+  <div class="btn-group">
+    <button id="themeBtn">Toggle Theme</button>
+    <button id="fullscreenBtn">Fullscreen</button>
   </div>
+</header>
 
-  <div id="bottomNav">
-    <button onclick="prevPage()">⬅️ Prev</button>
-    <span id="pageCounter">Page 1</span>
-    <button onclick="nextPage()">➡️ Next</button>
+<main>
+  <div id="pdf-wrapper">
+    <div id="pdf-loader">Loading PDF...</div>
+    <iframe id="pdf-frame" src="" allowfullscreen></iframe>
   </div>
+</main>
 
-  <script>
-    let currentPage = 1;
-    let zoomLevel = 1;
+<footer>
+  <button id="prevPageBtn" disabled>Prev Page</button>
+  <div id="page-info">Page 1</div>
+  <button id="nextPageBtn" disabled>Next Page</button>
+</footer>
 
-    function loadPDF() {
-      const animation = "animate__fadeIn";
-      document.getElementById('loader').style.display = 'block';
-      setTimeout(() => {
-        const frame = document.getElementById('pdfFrame');
-        frame.src = `myfile.pdf#page=${currentPage}`;
-        document.getElementById('pdfContainer').style.display = 'block';
-        frame.classList.add('animate__animated', animation);
-        document.getElementById('loader').style.display = 'none';
-      }, 1000);
+<script>
+  const pdfFrame = document.getElementById('pdf-frame');
+  const pdfLoader = document.getElementById('pdf-loader');
+  const loadBtn = document.getElementById('loadBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const printBtn = document.getElementById('printBtn');
+  const themeBtn = document.getElementById('themeBtn');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const prevPageBtn = document.getElementById('prevPageBtn');
+  const nextPageBtn = document.getElementById('nextPageBtn');
+  const pageInfo = document.getElementById('page-info');
+
+  let currentPage = 1;
+  const totalPages = 100; // You can set your PDF's page count here if known.
+  let zoomLevel = 1;
+
+  function showLoader(show) {
+    pdfLoader.style.display = show ? 'flex' : 'none';
+    pdfFrame.style.display = show ? 'none' : 'block';
+  }
+
+  function loadPDF(page = 1) {
+    showLoader(true);
+    currentPage = page;
+    // The URL includes parameters to start on a specific page
+    pdfFrame.src = `myfile.pdf#page=${currentPage}`;
+  }
+
+  pdfFrame.addEventListener('load', () => {
+    showLoader(false);
+    updatePageInfo();
+    enableControls(true);
+  });
+
+  function updatePageInfo() {
+    pageInfo.textContent = `Page ${currentPage}`;
+  }
+
+  function enableControls(enabled) {
+    downloadBtn.disabled = !enabled;
+    printBtn.disabled = !enabled;
+    prevPageBtn.disabled = !enabled || currentPage <= 1;
+    nextPageBtn.disabled = !enabled || currentPage >= totalPages;
+  }
+
+  loadBtn.addEventListener('click', () => loadPDF(currentPage));
+
+  downloadBtn.addEventListener('click', () => {
+    window.open('myfile.pdf', '_blank');
+  });
+
+  printBtn.addEventListener('click', () => {
+    pdfFrame.contentWindow.print();
+  });
+
+  themeBtn.addEventListener('click', () => {
+    document.documentElement.dataset.theme =
+      document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+
+  fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
     }
+  });
 
-    function toggleTheme() {
-      document.documentElement.dataset.theme = 
-        document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      loadPDF(currentPage);
     }
+  });
 
-    function toggleFullscreen() {
-      const elem = document.documentElement;
-      if (!document.fullscreenElement) {
-        elem.requestFullscreen().catch(err => alert(err));
-      } else {
-        document.exitFullscreen();
-      }
-    }
-
-    function zoomIn() {
-      zoomLevel += 0.1;
-      document.getElementById('pdfFrame').style.transform = `scale(${zoomLevel})`;
-    }
-
-    function zoomOut() {
-      zoomLevel = Math.max(0.5, zoomLevel - 0.1);
-      document.getElementById('pdfFrame').style.transform = `scale(${zoomLevel})`;
-    }
-
-    function downloadPDF() {
-      window.open('myfile.pdf', '_blank');
-    }
-
-    function printPDF() {
-      const frame = document.getElementById('pdfFrame');
-      frame.contentWindow.print();
-    }
-
-    function prevPage() {
-      if (currentPage > 1) currentPage--;
-      updatePage();
-    }
-
-    function nextPage() {
+  nextPageBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) {
       currentPage++;
-      updatePage();
+      loadPDF(currentPage);
     }
+  });
 
-    function updatePage() {
-      document.getElementById('pdfFrame').src = `myfile.pdf#page=${currentPage}`;
-      document.getElementById('pageCounter').textContent = `Page ${currentPage}`;
-    }
+  // Zooming with buttons could be added here if desired
 
-    function sharePDF() {
-      if (navigator.share) {
-        navigator.share({
-          title: 'View my PDF',
-          text: 'Check out this PDF',
-          url: window.location.href
-        });
-      } else {
-        alert('Share not supported.');
-      }
-    }
-  </script>
+</script>
 
 </body>
 </html>

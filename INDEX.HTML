@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Advanced PDF Viewer</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-light: #f9f9f9;
+      --bg-light: #f2f5f9;
       --bg-dark: #121212;
-      --text-light: #000;
-      --text-dark: #fff;
-      --btn-color: #007BFF;
-      --btn-hover: #0056b3;
+      --text-light: #1e1e1e;
+      --text-dark: #f1f1f1;
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --radius: 12px;
     }
 
     [data-theme="dark"] {
@@ -28,43 +31,52 @@
 
     html, body {
       height: 100%;
-      font-family: Arial, sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: var(--bg-light);
       color: var(--text-light);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
     }
 
     #topBar {
       position: fixed;
       top: 0;
       width: 100%;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(10px);
       display: flex;
       justify-content: space-between;
-      padding: 10px 20px;
+      align-items: center;
+      padding: 12px 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       z-index: 10;
     }
 
     #topBar button, #bottomNav button {
-      background: var(--btn-color);
+      background: var(--primary);
       color: white;
       border: none;
-      border-radius: 8px;
-      padding: 10px;
-      margin: 0 5px;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin: 5px;
       cursor: pointer;
       font-size: 14px;
+      transition: 0.3s ease;
+    }
+
+    #topBar button:hover, #bottomNav button:hover {
+      background: var(--primary-dark);
     }
 
     #pdfContainer {
-      margin-top: 60px;
-      width: 100%;
-      height: calc(100vh - 120px);
+      margin-top: 70px;
+      width: 90%;
+      max-width: 1200px;
+      height: calc(100vh - 150px);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
       display: none;
     }
 
@@ -72,22 +84,23 @@
       width: 100%;
       height: 100%;
       border: none;
-      border-radius: 12px;
     }
 
     #bottomNav {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: rgba(0,0,0,0.05);
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
       display: flex;
       justify-content: center;
       padding: 10px;
+      z-index: 10;
     }
 
     #loader {
       font-size: 20px;
-      margin: 20px;
+      margin: 40px 0;
       animation: pulse 1.2s infinite;
     }
 
@@ -112,9 +125,10 @@
       <button onclick="toggleFullscreen()">⛶ Fullscreen</button>
       <button onclick="zoomIn()">➕ Zoom</button>
       <button onclick="zoomOut()">➖ Zoom</button>
+      <button onclick="printPDF()">🖨️ Print</button>
+      <button onclick="sharePDF()">📤 Share</button>
     </div>
     <div>
-      <button onclick="printPDF()">🖨️ Print</button>
       <button onclick="downloadPDF()">⬇️ Download</button>
       <button onclick="loadPDF()">📄 Show PDF</button>
     </div>
@@ -194,6 +208,18 @@
     function updatePage() {
       document.getElementById('pdfFrame').src = `myfile.pdf#page=${currentPage}`;
       document.getElementById('pageCounter').textContent = `Page ${currentPage}`;
+    }
+
+    function sharePDF() {
+      if (navigator.share) {
+        navigator.share({
+          title: 'View my PDF',
+          text: 'Check out this PDF',
+          url: window.location.href
+        });
+      } else {
+        alert('Share not supported.');
+      }
     }
   </script>
 

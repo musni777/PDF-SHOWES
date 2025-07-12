@@ -6,19 +6,159 @@
   <title>My PDF Viewer</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    /* Your existing styles (keep same) ... */
-    /* Additional style for warning message */
-    #warning {
-      margin: 20px auto;
-      padding: 15px;
-      max-width: 600px;
-      background: #ffe3e3;
-      border: 2px solid #ff0000;
-      color: #900;
+    :root {
+      --color-bg-light: #f9fafb;
+      --color-bg-dark: #121212;
+      --color-text-light: #222;
+      --color-text-dark: #eee;
+      --color-primary: #4f46e5;
+      --color-primary-dark: #3730a3;
+      --radius: 12px;
+      --transition: 0.3s ease;
+    }
+    [data-theme="dark"] {
+      --color-bg-light: var(--color-bg-dark);
+      --color-text-light: var(--color-text-dark);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--color-bg-light);
+      color: var(--color-text-light);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(255 255 255 / 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+      z-index: 1000;
+    }
+    header .btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    button {
+      background: var(--color-primary);
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.5rem 1rem;
+      color: white;
+      cursor: pointer;
       font-weight: 600;
-      text-align: center;
-      border-radius: 10px;
-      display: none;
+      font-size: 1rem;
+      transition: background var(--transition);
+      user-select: none;
+    }
+    button:hover, button:focus {
+      background: var(--color-primary-dark);
+      outline: none;
+    }
+    main {
+      margin-top: 72px;
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+    #pdf-wrapper {
+      width: 90vw;
+      max-width: 1000px;
+      height: 80vh;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgb(0 0 0 / 0.1);
+      overflow: hidden;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Loading Spinner Container */
+    #pdf-loader {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 1;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 10;
+    }
+
+    /* Spinner */
+    .spinner {
+      border: 5px solid #e0e0e0;
+      border-top: 5px solid var(--color-primary);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+
+    iframe#pdf-frame {
+      flex-grow: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+      transform-origin: top left;
+      transition: opacity 0.5s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+    iframe#pdf-frame.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding-bottom: 1rem;
+    }
+    footer button {
+      flex: 1 1 100px;
+      max-width: 140px;
+    }
+    #page-info {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--color-primary);
+      user-select: none;
+      align-self: center;
+    }
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      footer button {
+        max-width: 100%;
+      }
+      #pdf-wrapper {
+        height: 70vh;
+      }
     }
   </style>
 </head>
@@ -36,17 +176,11 @@
   </div>
 </header>
 
-<div id="warning">
-  ⚠️ <strong>Important:</strong> For security reasons, PDFs may not load properly if you open this file directly from your computer.<br />
-  Please run a <em>local server</em> or upload your files to a web server.<br />
-  <small>Try opening this folder with a simple server, for example, with Python:</small><br />
-  <code>python -m http.server</code><br />
-  Then open <code>http://localhost:8000</code> in your browser.
-</div>
-
 <main>
   <div id="pdf-wrapper">
-    <div id="pdf-loader">Loading PDF...</div>
+    <div id="pdf-loader">
+      <div class="spinner"></div>
+    </div>
     <iframe id="pdf-frame" src="" allowfullscreen></iframe>
   </div>
 </main>
@@ -68,40 +202,36 @@
   const prevPageBtn = document.getElementById('prevPageBtn');
   const nextPageBtn = document.getElementById('nextPageBtn');
   const pageInfo = document.getElementById('page-info');
-  const warning = document.getElementById('warning');
 
   let currentPage = 1;
-  const totalPages = 100; // Adjust if you know total pages
-  let pdfLoaded = false;
+  const totalPages = 100; // You can set your PDF's page count here if known.
 
   function showLoader(show) {
-    pdfLoader.style.display = show ? 'flex' : 'none';
-    pdfFrame.style.display = show ? 'none' : 'block';
-  }
-
-  function checkLocalFileProtocol() {
-    return window.location.protocol === 'file:';
+    if (show) {
+      pdfLoader.style.opacity = '1';
+      pdfLoader.style.pointerEvents = 'auto';
+      pdfFrame.classList.remove('visible');
+    } else {
+      pdfLoader.style.opacity = '0';
+      pdfLoader.style.pointerEvents = 'none';
+      pdfFrame.classList.add('visible');
+    }
   }
 
   function loadPDF(page = 1) {
-    if (checkLocalFileProtocol()) {
-      // Show warning if running locally without server
-      warning.style.display = 'block';
-      alert('PDF loading may not work locally without a server. Please run a local server.');
-      return;
-    } else {
-      warning.style.display = 'none';
-    }
     showLoader(true);
     currentPage = page;
+    // Start loading PDF with page param
     pdfFrame.src = `myfile.pdf#page=${currentPage}`;
   }
 
   pdfFrame.addEventListener('load', () => {
-    showLoader(false);
-    pdfLoaded = true;
-    updatePageInfo();
-    enableControls(true);
+    // Small delay to allow iframe content to settle and for smoother UX
+    setTimeout(() => {
+      showLoader(false);
+      updatePageInfo();
+      enableControls(true);
+    }, 300);
   });
 
   function updatePageInfo() {
@@ -122,7 +252,7 @@
   });
 
   printBtn.addEventListener('click', () => {
-    if (pdfLoaded) pdfFrame.contentWindow.print();
+    pdfFrame.contentWindow.print();
   });
 
   themeBtn.addEventListener('click', () => {
@@ -152,10 +282,6 @@
     }
   });
 
-  // On load, check if running locally and show warning
-  if (checkLocalFileProtocol()) {
-    warning.style.display = 'block';
-  }
 </script>
 
 </body>

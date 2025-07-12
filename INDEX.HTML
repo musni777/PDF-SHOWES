@@ -6,6 +6,18 @@
   <title>PDF Viewer</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <style>
+    :root {
+      --bg-color: #f9f9f9;
+      --text-color: #000;
+      --btn-color: #007BFF;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #111;
+      --text-color: #fff;
+      --btn-color: #1E90FF;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -15,7 +27,8 @@
       padding: 0;
       height: 100%;
       font-family: sans-serif;
-      background: #f9f9f9;
+      background: var(--bg-color);
+      color: var(--text-color);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -26,90 +39,100 @@
       display: none;
       width: 100%;
       height: 100vh;
-      max-width: 100%;
-      max-height: 100%;
     }
 
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      border-radius: 12px;
     }
 
-    #showBtn {
-      padding: 15px 35px;
-      font-size: 20px;
+    button {
+      padding: 12px 28px;
+      font-size: 18px;
       border: none;
       border-radius: 10px;
-      background: #007BFF;
+      margin: 10px;
+      background: var(--btn-color);
       color: white;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       transition: 0.3s;
     }
 
-    #showBtn:hover {
-      background: #0056b3;
+    button:hover {
+      opacity: 0.9;
+    }
+
+    #loader {
+      display: none;
+      font-size: 22px;
+      margin-bottom: 20px;
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
     }
 
     @media (max-width: 600px) {
-      #showBtn {
-        font-size: 18px;
-        padding: 12px 28px;
+      button {
+        font-size: 16px;
+        padding: 10px 24px;
       }
     }
   </style>
 </head>
 <body>
 
-  <button id="showBtn">Show PDF</button>
+  <div id="loader">Loading PDF...</div>
+
+  <button id="showBtn">📄 Show PDF</button>
+  <button id="downloadBtn" style="display:none;">⬇️ Download PDF</button>
+  <button id="toggleThemeBtn">🌓 Dark Mode</button>
 
   <div id="pdfContainer">
     <iframe src="myfile.pdf#toolbar=0&navpanes=0&scrollbar=0" allowfullscreen></iframe>
   </div>
 
   <script>
-    const btn = document.getElementById('showBtn');
-    const container = document.getElementById('pdfContainer');
+    const showBtn = document.getElementById('showBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const pdfContainer = document.getElementById('pdfContainer');
+    const loader = document.getElementById('loader');
+    const toggleThemeBtn = document.getElementById('toggleThemeBtn');
 
     const animations = [
-      "animate__fadeIn",
-      "animate__fadeInDown",
-      "animate__fadeInUp",
-      "animate__fadeInLeft",
-      "animate__fadeInRight",
-      "animate__fadeInTopLeft",
-      "animate__fadeInTopRight",
-      "animate__fadeInBottomLeft",
-      "animate__fadeInBottomRight",
-      "animate__zoomIn",
-      "animate__zoomInDown",
-      "animate__zoomInLeft",
-      "animate__zoomInRight",
-      "animate__zoomInUp",
-      "animate__slideInUp",
-      "animate__slideInDown",
-      "animate__slideInLeft",
-      "animate__slideInRight",
-      "animate__lightSpeedInLeft",
-      "animate__lightSpeedInRight",
-      "animate__flipInX",
-      "animate__flipInY",
-      "animate__rotateIn",
-      "animate__rotateInDownLeft",
-      "animate__rotateInDownRight",
-      "animate__rotateInUpLeft",
-      "animate__rotateInUpRight",
-      "animate__bounceIn",
-      "animate__bounceInLeft",
-      "animate__bounceInRight"
+      "animate__fadeIn", "animate__zoomIn", "animate__slideInUp", "animate__flipInX", "animate__jackInTheBox",
+      "animate__rollIn", "animate__lightSpeedInLeft", "animate__bounceIn", "animate__fadeInUpBig", "animate__zoomInDown",
+      "animate__fadeInDown", "animate__fadeInLeft", "animate__fadeInRight", "animate__slideInDown", "animate__slideInLeft",
+      "animate__slideInRight", "animate__flipInY", "animate__rotateIn", "animate__rotateInDownRight", "animate__bounceInRight",
+      "animate__bounceInLeft", "animate__rotateInUpLeft", "animate__rotateInDownLeft", "animate__zoomInLeft",
+      "animate__zoomInRight", "animate__fadeInTopRight", "animate__fadeInBottomLeft", "animate__rotateInUpRight",
+      "animate__bounceInUp", "animate__zoomInUp"
     ];
 
-    btn.addEventListener('click', () => {
+    showBtn.addEventListener('click', () => {
       const animation = animations[Math.floor(Math.random() * animations.length)];
-      container.classList.add('animate__animated', animation);
-      container.style.display = 'block';
-      btn.style.display = 'none';
+      loader.style.display = 'block';
+      showBtn.style.display = 'none';
+      setTimeout(() => {
+        loader.style.display = 'none';
+        pdfContainer.classList.add('animate__animated', animation);
+        pdfContainer.style.display = 'block';
+        downloadBtn.style.display = 'inline-block';
+      }, 1200);
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      window.open('myfile.pdf', '_blank');
+    });
+
+    toggleThemeBtn.addEventListener('click', () => {
+      document.body.dataset.theme = document.body.dataset.theme === 'dark' ? '' : 'dark';
     });
   </script>
 
